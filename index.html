@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedSetu - National Integrated e-Prescription & Health Record Platform</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>MedSetu</h1>
+      <p>National Integrated e-Prescription & Health Record Platform (MVP)</p>
+    </div>
+    <div class="top-actions">
+      <span id="sessionUser"></span>
+      <button id="logoutBtn" class="btn-secondary hidden">Logout</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="authSection" class="card auth-card">
+      <div class="tabs">
+        <button class="tab active" data-tab="login">Login</button>
+        <button class="tab" data-tab="register">Register</button>
+      </div>
+
+      <div id="loginFormWrap" class="form-wrap">
+        <h2>Login</h2>
+        <form id="loginForm">
+          <label>Role
+            <select id="loginRole" required>
+              <option value="doctor">Doctor</option>
+              <option value="pharmacist">Pharmacist</option>
+              <option value="patient">Patient</option>
+            </select>
+          </label>
+          <label>Email <input type="email" id="loginEmail" required /></label>
+          <label>Password <input type="password" id="loginPassword" required /></label>
+          <label id="doctorLoginField">Medical Registration Number
+            <input type="text" id="loginMedicalReg" />
+          </label>
+          <label id="pharmacistLoginField" class="hidden">Pharmacy License Number
+            <input type="text" id="loginLicense" />
+          </label>
+          <button type="submit" class="btn-primary">Login</button>
+        </form>
+      </div>
+
+      <div id="registerFormWrap" class="form-wrap hidden">
+        <h2>Register</h2>
+        <form id="registerForm">
+          <label>Role
+            <select id="registerRole" required>
+              <option value="patient">Patient</option>
+              <option value="doctor">Doctor</option>
+              <option value="pharmacist">Pharmacist</option>
+            </select>
+          </label>
+          <label>Full Name <input type="text" id="regName" required /></label>
+          <label>Email <input type="email" id="regEmail" required /></label>
+          <label>Password <input type="password" id="regPassword" required /></label>
+
+          <div id="patientRegFields">
+            <label>Mobile Number <input type="text" id="regMobile" /></label>
+            <label>Date of Birth <input type="date" id="regDob" /></label>
+            <label>Gender
+              <select id="regGender">
+                <option value="">Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+            <label>Allergies (comma separated)
+              <input type="text" id="regAllergies" placeholder="Peanut, Dust" />
+            </label>
+            <label>Chronic Conditions (comma separated)
+              <input type="text" id="regChronic" placeholder="Diabetes, Hypertension" />
+            </label>
+          </div>
+
+          <div id="doctorRegFields" class="hidden">
+            <label>Medical Registration Number <input type="text" id="regMedicalReg" /></label>
+            <label>Specialization <input type="text" id="regSpecialization" /></label>
+          </div>
+
+          <div id="pharmacistRegFields" class="hidden">
+            <label>Pharmacy License Number <input type="text" id="regLicense" /></label>
+            <label>Pharmacy Name <input type="text" id="regPharmacyName" /></label>
+          </div>
+
+          <button type="submit" class="btn-primary">Create Account</button>
+        </form>
+      </div>
+
+      <p id="authMessage" class="message"></p>
+    </section>
+
+    <section id="doctorDashboard" class="hidden dashboard">
+      <h2>Doctor Dashboard</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Patient Access by Mobile</h3>
+          <input id="doctorPatientMobile" type="text" placeholder="Enter registered mobile" />
+          <button class="btn-primary" id="searchPatientBtn">Search Patient</button>
+          <div id="doctorPatientResult"></div>
+          <div class="otp-box hidden" id="otpFlowBox">
+            <button class="btn-secondary" id="sendOtpBtn">Send OTP (Simulation)</button>
+            <div id="otpDisplay" class="otp-display"></div>
+            <input id="otpInput" type="text" placeholder="Enter OTP" />
+            <button class="btn-primary" id="verifyOtpBtn">Verify OTP</button>
+            <p id="otpMsg" class="message"></p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Patient Overview (30-min session)</h3>
+          <div id="patientOverview"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Smart Prescription Builder</h3>
+        <div id="medRows"></div>
+        <button id="addMedRowBtn" class="btn-secondary">+ Add Medicine</button>
+        <label>Doctor Notes
+          <textarea id="doctorNotes" rows="3" placeholder="Clinical notes"></textarea>
+        </label>
+        <label>Digital Signature Simulation
+          <input id="digitalSignature" type="text" placeholder="Dr. Name (Digital Sign)" />
+        </label>
+        <button id="createPrescriptionBtn" class="btn-primary">Create Prescription</button>
+        <p id="prescMsg" class="message"></p>
+        <div id="createdPrescriptionCard" class="hidden prescription-card">
+          <h4>Prescription Generated</h4>
+          <p id="createdPrescriptionId"></p>
+          <div id="qrContainer"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Upload Report</h3>
+        <input type="file" id="doctorReportFile" />
+        <button id="uploadReportBtn" class="btn-primary">Upload to Patient Record</button>
+        <p id="reportUploadMsg" class="message"></p>
+      </div>
+    </section>
+
+    <section id="pharmacistDashboard" class="hidden dashboard">
+      <h2>Pharmacist Dashboard</h2>
+      <div class="card">
+        <h3>Prescription Verification</h3>
+        <input id="lookupValue" type="text" placeholder="Enter Prescription ID or MEDSETU:QR payload" />
+        <button id="lookupPrescriptionBtn" class="btn-primary">Lookup</button>
+        <div id="lookupResult"></div>
+      </div>
+    </section>
+
+    <section id="patientDashboard" class="hidden dashboard">
+      <h2>Patient Dashboard</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Medical Profile</h3>
+          <div id="patientProfile"></div>
+          <h4>Upload External Prescription</h4>
+          <input type="file" id="externalPrescFile" />
+          <button id="uploadExternalBtn" class="btn-secondary">Upload</button>
+          <p id="externalUploadMsg" class="message"></p>
+        </div>
+        <div class="card">
+          <h3>Doctor/Pharmacist Access Logs</h3>
+          <div id="accessLogs"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Prescriptions</h3>
+        <div id="patientPrescriptions"></div>
+      </div>
+
+      <div class="card">
+        <h3>Medical History Timeline</h3>
+        <div id="timelineView" class="timeline"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
